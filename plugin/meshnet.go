@@ -160,6 +160,27 @@ func delegateDel(ctx context.Context, netconf map[string]interface{}, intfName s
 	return nil
 }
 
+func physicalVxlanLinkAdd(netNS, linkName string, ip string, srcIntf string, peerPodIP string) (err error) {
+	log.Printf("Default route is via %s@%s", srcIP, srcIntf)
+
+	myVeth, err := makeVeth(netNS, linkName, ip)
+    if err != nil {
+        return err
+    }
+
+    vxlan := makeVxlan(srcIntf, peerPodIP, 5099)
+    if err = koko.MakeVxLan(*myVeth, *vxlan); err != nil {
+        log.Printf("Error when creating a Vxlan interface with koko: %s", err)
+        return err
+    }
+
+    if err = koko.MakeVxLan(*myVeth, *vxlan); err != nil {
+        log.Printf("Error when creating a Vxlan interface with koko: %s", err)
+        return err
+    }
+    return nil
+}
+
 // Adds interfaces to a POD
 func cmdAdd(args *skel.CmdArgs) error {
 	ctx, cancel := context.WithCancel(context.Background())
