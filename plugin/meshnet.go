@@ -161,9 +161,9 @@ func delegateDel(ctx context.Context, netconf map[string]interface{}, intfName s
 }
 
 func physicalVxlanLinkAdd(netNS, linkName string, ip string, srcIntf string, peerPodIP string) (err error) {
-	log.Printf("Default route is via %s@%s", srcIP, srcIntf)
+    log.Printf("Default route is via %s@%s", ip, srcIntf)
 
-	myVeth, err := makeVeth(netNS, linkName, ip)
+    myVeth, err := makeVeth(netNS, linkName, ip)
     if err != nil {
         return err
     }
@@ -220,7 +220,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 	}
 	log.Printf("Default route is via %s@%s", srcIP, srcIntf)
 
-    r, err := physicalVxlanLinkAdd(args.netNS, "eth99", "100.40.4.99/24", srcIntf, "172.33.16.19/24")
+    err = physicalVxlanLinkAdd(args.Netns, "eth99", "100.40.4.99/24", srcIntf, "172.33.16.19/24")
 	if err != nil {
 		log.Printf("'delegate' plugin failed: %s", err)
 		return err
