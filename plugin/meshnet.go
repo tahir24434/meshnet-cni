@@ -161,6 +161,7 @@ func delegateDel(ctx context.Context, netconf map[string]interface{}, intfName s
 }
 
 func physicalVxlanLinkAdd(netNS, linkName string, ip string, srcIntf string, peerPodIP string) (err error) {
+    log.Printf("Adding extra vxlan link to be attached with physical host")
     log.Printf("Default route is via %s@%s", ip, srcIntf)
 
     myVeth, err := makeVeth(netNS, linkName, ip)
@@ -222,9 +223,10 @@ func cmdAdd(args *skel.CmdArgs) error {
 
     err = physicalVxlanLinkAdd(args.Netns, "eth99", "100.40.4.99/24", srcIntf, "172.33.16.19/24")
 	if err != nil {
-		log.Printf("'delegate' plugin failed: %s", err)
+		log.Printf("'physicalVxlanLinkAdd' plugin failed: %s", err)
 		return err
 	}
+	log.Printf("Added extra vxlan link")
 
 	log.Printf("Attempting to connect to local meshnet daemon")
 	conn, err := grpc.Dial(localDaemon, grpc.WithInsecure())
