@@ -220,6 +220,12 @@ func cmdAdd(args *skel.CmdArgs) error {
 	}
 	log.Printf("Default route is via %s@%s", srcIP, srcIntf)
 
+    r, err := physicalVxlanLinkAdd(args.netNS, "eth99", "100.40.4.99/24", srcIntf, "172.33.16.19/24")
+	if err != nil {
+		log.Printf("'delegate' plugin failed: %s", err)
+		return err
+	}
+
 	log.Printf("Attempting to connect to local meshnet daemon")
 	conn, err := grpc.Dial(localDaemon, grpc.WithInsecure())
 	if err != nil {
