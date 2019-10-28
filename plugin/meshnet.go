@@ -94,7 +94,7 @@ func getVxlanSource() (srcIP, srcIntf string, err error) {
 
 // Creates koko.Veth from NetNS and LinkName
 func makeVeth(netNS, linkName string, ip string) (*koko.VEth, error) {
-	log.Printf("Creating Veth struct with NetNS:%s and intfName: %s, IP:%s", netNS, linkName, ip)
+	log.Printf("Creating Veth struct with NetNS:%s and linkName:%s, IP:%s", netNS, linkName, ip)
 	veth := koko.VEth{}
 	veth.NsName = netNS
 	veth.LinkName = linkName
@@ -108,12 +108,13 @@ func makeVeth(netNS, linkName string, ip string) (*koko.VEth, error) {
 			Mask: ipSubnet.Mask,
 		}}
 	}
-
+    log.Printf("makeVeth returning: %v", veth)
 	return &veth, nil
 }
 
 // Creates koko.Vxlan from ParentIF, destination IP and VNI
 func makeVxlan(srcIntf string, peerIP string, idx int64) *koko.VxLan {
+    log.Printf("srcIntf:%s peerIP:%s idx:%s", srcIntf, peerIP, idx)
 	return &koko.VxLan{
 		ParentIF: srcIntf,
 		IPAddr:   net.ParseIP(peerIP),
@@ -163,18 +164,14 @@ func delegateDel(ctx context.Context, netconf map[string]interface{}, intfName s
 func physicalVxlanLinkAdd(netNS, linkName string, ip string, srcIntf string, peerPodIP string) (err error) {
     log.Printf("Adding extra vxlan link to be attached with physical host")
     log.Printf("Default route is via %s@%s", ip, srcIntf)
-
     myVeth, err := makeVeth(netNS, linkName, ip)
     if err != nil {
+        log.Printf("Error creating veth: %v", err)
         return err
     }
-
+    log.Printf("Adding Vxlan - srcIntf:%s peerPodIP:%s", srcIntf, peerPodIP)
     vxlan := makeVxlan(srcIntf, peerPodIP, 5099)
-    if err = koko.MakeVxLan(*myVeth, *vxlan); err != nil {
-        log.Printf("Error when creating a Vxlan interface with koko: %s", err)
-        return err
-    }
-
+    log.Printf("Calling MakeVxLan")
     if err = koko.MakeVxLan(*myVeth, *vxlan); err != nil {
         log.Printf("Error when creating a Vxlan interface with koko: %s", err)
         return err
@@ -221,7 +218,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 	}
 	log.Printf("Default route is via %s@%s", srcIP, srcIntf)
 
-    err = physicalVxlanLinkAdd(args.Netns, "eth99", "100.40.4.99/24", srcIntf, "172.33.16.19/24")
+    err = physicalVxlanLinkAdd(args.Netns, "eth99", "100.40.4.99/24", srcIntf, "172.33.16.19")
 	if err != nil {
 		log.Printf("'physicalVxlanLinkAdd' plugin failed: %s", err)
 		return err
